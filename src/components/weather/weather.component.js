@@ -58,7 +58,7 @@ class Weather extends Component {
   setDependencies() {
     this.location = CONFIG.temperature.location;
     this.temperatureScale = CONFIG.temperature.scale;
-    this.weatherForecast = new WeatherForecastClient(this.location);
+    this.weatherForecast = new WeatherForecastClient(this.location, CONFIG.temperature.appId);
   }
 
   /**
@@ -66,7 +66,7 @@ class Weather extends Component {
    * @returns {Array} Array of resource imports
    */
   imports() {
-    return [this.getIconResource('material'), this.getFontResource('roboto')];
+    return [this.getResource('icons', 'material'), this.getResource('fonts', 'roboto')];
   }
 
   /**
@@ -191,6 +191,7 @@ class Weather extends Component {
    */
   async setWeather() {
     this.weather = await this.weatherForecast.getWeather();
+    if (!this.weather) return;
     this.setTemperature();
   }
 
