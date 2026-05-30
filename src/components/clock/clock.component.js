@@ -19,7 +19,7 @@ class Clock extends Component {
    * @returns {Array<string>} Array of resource imports
    */
   imports() {
-    return [this.getIconResource('material'), this.getFontResource('roboto')];
+    return [this.getResource('icons', 'material'), this.getResource('fonts', 'roboto')];
   }
 
   /**
@@ -158,15 +158,10 @@ class Clock extends Component {
           if (clockElement) {
             let timezoneDate;
 
-            // Check if timezone name is provided
+            // Use IANA timezone name when provided; otherwise fall back to local time
             if (clock.timezone) {
-              // Use IANA timezone name (e.g., "America/New_York")
               timezoneDate = Date.createWithTimezone(clock.timezone);
-            } else if (clock.timezoneOffset !== undefined) {
-              // Fallback to legacy offset method
-              timezoneDate = Date.createWithTimezoneOffset(clock.timezoneOffset);
             } else {
-              // Use local time if neither is provided
               timezoneDate = new Date();
             }
 
@@ -181,12 +176,25 @@ class Clock extends Component {
    * Initialise the clock and update every second
    * @returns {void}
    */
+  /**
+   * Schedule the next tick aligned to the start of the next full second
+   * to avoid drift from setInterval slop.
+   * @returns {void}
+   */
+  scheduleNextTick() {
+    const delay = 1000 - (Date.now() % 1000);
+    setTimeout(() => {
+      this.setTime();
+      this.scheduleNextTick();
+    }, delay);
+  }
+
   connectedCallback() {
     this.render().then(() => {
       setTimeout(() => {
         this.setTime();
         this.setIconColor();
-        setInterval(() => this.setTime(), 1000);
+        this.scheduleNextTick();
       }, 100);
     });
   }
